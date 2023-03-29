@@ -1,12 +1,20 @@
 package errno
 
 type Errno struct {
-	Message    string `json:"message"`
-	StatusCode uint32 `json:"status_code"`
+	message    string `json:"message"`
+	statusCode uint32 `json:"status_code"`
+}
+
+func (e *Errno) GetStatusCode() uint32 {
+	return e.statusCode
+}
+
+func (e *Errno) GetMessage() string {
+	return e.message
 }
 
 func (e *Errno) Error() string {
-	return e.Message
+	return e.message
 }
 
 func (e *Errno) Is(err *Errno) bool {
@@ -14,7 +22,8 @@ func (e *Errno) Is(err *Errno) bool {
 }
 
 var (
-	LoginWrongInfoError = &Errno{Message: "账号或密码错误", StatusCode: 400401}
-	LoginServerError    = &Errno{Message: "登录出现异常", StatusCode: 500500}
-	UserNotFound        = &Errno{Message: "用户不存在", StatusCode: 200204}
+	LoginWrongInfoError = &Errno{message: "账号或密码错误", statusCode: 400401}
+	LoginServerError    = &Errno{message: "登录出现异常", statusCode: 500500}
+	UserNotFound        = &Errno{message: "用户不存在", statusCode: 200204}
+	JsonDataError       = &Errno{message: "JSON数据绑定失败", statusCode: 400422}
 )

@@ -21,6 +21,13 @@ func (e *Errno) Is(err *Errno) bool {
 	return e == err
 }
 
+func (e *Errno) IsError(err error) bool {
+	if one, ok := err.(*Errno); ok {
+		return e.Is(one)
+	}
+	return false
+}
+
 var (
 	LoginWrongInfoError = &Errno{message: "账号或密码错误", statusCode: 400401}
 	LoginServerError    = &Errno{message: "登录出现异常", statusCode: 500500}

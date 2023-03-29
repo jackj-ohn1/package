@@ -2,30 +2,22 @@ package errno
 
 type Errno struct {
 	message    string `json:"message"`
-	statusCode uint32 `json:"status_code"`
+	statusCode int    `json:"status_code"`
 }
 
-func (e *Errno) GetStatusCode() uint32 {
-	return e.statusCode
-}
-
-func (e *Errno) GetMessage() string {
-	return e.message
+func GetCode(message string) int {
+	return storage[message]
 }
 
 func (e *Errno) Error() string {
 	return e.message
 }
 
-func (e *Errno) Is(err *Errno) bool {
-	return e == err
-}
-
-func IsError(e *Errno, err error) bool {
-	if one, ok := err.(*Errno); ok {
-		return e.Is(one)
-	}
-	return false
+var storage = map[string]int{
+	JsonDataError.message:       JsonDataError.statusCode,
+	LoginServerError.message:    LoginServerError.statusCode,
+	LoginWrongInfoError.message: LoginWrongInfoError.statusCode,
+	UserNotExistError.message:   UserNotExistError.statusCode,
 }
 
 var (

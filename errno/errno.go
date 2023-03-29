@@ -16,7 +16,10 @@ func Is(errA error, errB error) bool {
 }
 
 func GetCode(message string) int {
-	return storage[message]
+	if code, ok := storage[message]; ok {
+		return code
+	}
+	return 20000
 }
 
 func (e *Errno) Error() string {

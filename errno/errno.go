@@ -5,6 +5,16 @@ type Errno struct {
 	statusCode int    `json:"status_code"`
 }
 
+func Is(errA error, errB error) bool {
+	if _, ok := storage[errA.Error()]; !ok {
+		return false
+	}
+	if _, ok := storage[errB.Error()]; !ok {
+		return false
+	}
+	return storage[errA.Error()] == storage[errB.Error()]
+}
+
 func GetCode(message string) int {
 	return storage[message]
 }

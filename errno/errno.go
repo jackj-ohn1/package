@@ -21,7 +21,7 @@ func (e *Errno) Is(err *Errno) bool {
 	return e == err
 }
 
-func (e *Errno) IsError(err error) bool {
+func IsError(e *Errno, err error) bool {
 	if one, ok := err.(*Errno); ok {
 		return e.Is(one)
 	}

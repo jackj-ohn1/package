@@ -27,6 +27,13 @@ func NewLogger(buffer uint32) {
 	logger.AddHook(loggerHook())
 }
 
+func Trace(entry *logrus.Entry) {
+	if entry == nil {
+		entry = logrus.NewEntry(logger)
+	}
+	entry.Trace()
+}
+
 func Info(entry *logrus.Entry, message ...string) {
 	if entry == nil {
 		entry = logrus.NewEntry(logger)

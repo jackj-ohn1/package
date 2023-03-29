@@ -6,17 +6,14 @@ import (
 	"github.com/pkg/errors"
 	"github.com/rifflock/lfshook"
 	"github.com/sirupsen/logrus"
-	"io"
 	"os"
 	"time"
 )
 
 var logger *logrus.Logger
-var syncLog *SyncLog
 
-func NewLogger(buffer uint32) {
+func NewLogger() {
 	logger = logrus.New()
-	syncLog = NewSyncLog(buffer)
 	
 	logger.SetOutput(os.Stdout)
 	logger.SetFormatter(&logrus.JSONFormatter{
@@ -25,6 +22,32 @@ func NewLogger(buffer uint32) {
 	})
 	
 	logger.AddHook(loggerHook())
+}
+
+func loggerHook() *lfshook.LfsHook {
+	return lfshook.NewHook(
+		lfshook.WriterMap{
+			logrus.InfoLevel:  fileDivisionByTime("Info"),
+			logrus.DebugLevel: fileDivisionByTime("Debug"),
+			logrus.WarnLevel:  fileDivisionByTime("Warn"),
+			logrus.PanicLevel: fileDivisionByTime("Panic"),
+			logrus.FatalLevel: fileDivisionByTime("Fatal"),
+		}, &logrus.JSONFormatter{
+			TimestampFormat: "2006-01-02 15:04:05",
+			PrettyPrint:     true,
+		})
+}
+
+func fileDivisionByTime(level string) *rotatelogs.RotateLogs {
+	division, err := rotatelogs.New(
+		"./log/"+level+"/%Y-%m-%d.log",
+		rotatelogs.WithMaxAge(time.Hour*24*7),
+		rotatelogs.WithRotationTime(time.Hour*24),
+	)
+	if err != nil {
+		logrus.WithError(err).WithField("stack", fmt.Sprintf("%+v", errors.WithStack(err))).Fatal()
+	}
+	return division
 }
 
 func Trace(entry *logrus.Entry) {
@@ -72,30 +95,4 @@ func Fatal(entry *logrus.Entry, err error, message ...string) {
 	}
 	
 	entry.WithError(err).WithField("stack", fmt.Sprintf("%+v", err)).Fatalln(message)
-}
-
-func loggerHook() *lfshook.LfsHook {
-	return lfshook.NewHook(
-		lfshook.WriterMap{
-			logrus.InfoLevel:  fileDivisionByTime("Info"),
-			logrus.DebugLevel: fileDivisionByTime("Debug"),
-			logrus.WarnLevel:  io.MultiWriter(fileDivisionByTime("Warn"), syncLog),
-			logrus.PanicLevel: io.MultiWriter(fileDivisionByTime("Panic"), syncLog),
-			logrus.FatalLevel: io.MultiWriter(fileDivisionByTime("Fatal"), syncLog),
-		}, &logrus.JSONFormatter{
-			TimestampFormat: "2006-01-02 15:04:05",
-			PrettyPrint:     true,
-		})
-}
-
-func fileDivisionByTime(level string) *rotatelogs.RotateLogs {
-	division, err := rotatelogs.New(
-		"./log/"+level+"/%Y-%m-%d.log",
-		rotatelogs.WithMaxAge(time.Hour*24*7),
-		rotatelogs.WithRotationTime(time.Hour*24),
-	)
-	if err != nil {
-		logrus.WithError(err).WithField("stack", fmt.Sprintf("%+v", errors.WithStack(err))).Fatal()
-	}
-	return division
 }
